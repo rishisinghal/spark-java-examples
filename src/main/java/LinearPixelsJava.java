@@ -16,18 +16,33 @@ import nodes.Vectorizer;
 import scala.Tuple2;
 import utils.Stats;
 
-public final class LinearPixelsJava {
+/**
+ * Takes the LinearPixels Scala example present 
+ * at http://ampcamp.berkeley.edu/5/exercises/image-classification-with-pipelines.html#setup
+ * and does the same without pipelines in Java
+ */
+public class LinearPixelsJava {
 
   public static void main(String[] args) throws Exception {
 
+	// Setup Spark context to run it locally  
     SparkConf conf = new SparkConf().setAppName("LinearPixelsJava");
     conf.setMaster("local");
     JavaSparkContext jsc = new JavaSparkContext(conf);
     SparkContext sc = JavaSparkContext.toSparkContext(jsc);
     
     // Read the cifar train & test data
-    String trainDataFile = "C:\\rishi\\Big Data\\ampcamp\\ampcamp-pipelines\\data\\cifar_train.bin";
-    String testDataFile = "C:\\rishi\\Big Data\\ampcamp\\ampcamp-pipelines\\data\\cifar_test.bin";
+    String trainDataFile = null;
+    String testDataFile = null;
+    
+    if(args.length<2)
+    {
+    	trainDataFile = "C:\\rishi\\Big Data\\ampcamp\\ampcamp-pipelines\\data\\cifar_train.bin";
+    	testDataFile = "C:\\rishi\\Big Data\\ampcamp\\ampcamp-pipelines\\data\\cifar_test.bin";
+    } else {
+    	trainDataFile = args[0]; 
+    	testDataFile = args[1];
+    }
     
     // Read the data files
     RDD<LabeledImage> trainIimgRdd = new CifarParser().apply(new Tuple2<SparkContext, String>(sc, trainDataFile));
@@ -36,7 +51,7 @@ public final class LinearPixelsJava {
     RDD<LabeledImage> testIimgRdd = new CifarParser().apply(new Tuple2<SparkContext, String>(sc, testDataFile));
     RDD<LabeledImage> testData = new CachingNode<LabeledImage>("TestImageCache").apply(testIimgRdd);
 
-    
+    // Check the total number of images in the dataset
     JavaRDD<LabeledImage> trainDataRdd = trainData.toJavaRDD();
     System.out.println("Total Images:"+trainDataRdd.count());
     
